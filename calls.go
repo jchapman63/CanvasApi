@@ -27,17 +27,20 @@ func main() {
 
 		// grab all assignments for course
 		for j := range assignmentsForCourse {
+
 			// create a time object out of the time string
 			dueDate, err := time.Parse(time.RFC3339, assignmentsForCourse[j].Due_date)
+
+			// convert to local time
+			// localizing is being handled in getAssignmentsForCourse currently
+			// dueDate = dueDate.Local()
 			if err == nil {
 				formatted := fmt.Sprintf("%s %d, %d %d:%d", dueDate.Month().String(), dueDate.Day(), dueDate.Year(), dueDate.Hour(), dueDate.Minute())
 
 				// print assignment name and due date
 				fmt.Printf("Assignment: %s, Due On: %s\n", assignmentsForCourse[j].Name, formatted)
 			}
-
 		}
-
 		// format spacing
 		fmt.Printf("\n")
 	}
@@ -83,8 +86,7 @@ func getCourses(auth string) []Course {
 		if err := json.Unmarshal(bodyBytes, &result); err != nil { // Parse []byte to go struct pointer
 			fmt.Println("Can not unmarshal JSON")
 		}
-		// how to make use of the result
-		// fmt.Println(result[0].ID)
+
 		return result
 	}
 	return nil
@@ -113,11 +115,13 @@ func getAssignmentsForCourse(course Course, auth string) []Assignment {
 
 		for i := range result {
 			dueDate, err := time.Parse(time.RFC3339, result[i].Due_date)
+			dueDate = dueDate.Local()
 			if err == nil {
-				current := time.Now()
+				current := time.Now().Local()
 				if dueDate.After(current) {
 					result[i].course = course.Name
 					result[i].courseKey = course.ID
+					result[i].Due_date = dueDate.Format(time.RFC3339)
 				} else {
 					result[i].course = ""
 					result[i].Due_date = ""
