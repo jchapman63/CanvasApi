@@ -24,7 +24,7 @@ func main() {
 
 		// print the course name
 		fmt.Printf("%s\n\n", coursesSlice[i].Name)
-
+		sortDates(assignmentsForCourse)
 		// grab all assignments for course
 		for j := range assignmentsForCourse {
 
@@ -32,8 +32,6 @@ func main() {
 			dueDate, err := time.Parse(time.RFC3339, assignmentsForCourse[j].Due_date)
 
 			// convert to local time
-			// localizing is being handled in getAssignmentsForCourse currently
-			// dueDate = dueDate.Local()
 			if err == nil {
 				formatted := fmt.Sprintf("%s %d, %d %d:%d", dueDate.Month().String(), dueDate.Day(), dueDate.Year(), dueDate.Hour(), dueDate.Minute())
 
@@ -45,6 +43,19 @@ func main() {
 		fmt.Printf("\n")
 	}
 
+}
+
+func sortDates(assignments []Assignment) {
+
+	for i := range assignments {
+		for j := 0; j < len(assignments)-i-1; j++ {
+			date, _ := time.Parse(time.RFC3339, assignments[j].Due_date)
+			nextDate, _ := time.Parse(time.RFC3339, assignments[j+1].Due_date)
+			if date.After(nextDate) {
+				assignments[j], assignments[j+1] = assignments[j+1], assignments[j]
+			}
+		}
+	}
 }
 
 func instructureRequest(requestUrl string, authorizationToken string) *http.Response {
